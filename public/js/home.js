@@ -1,5 +1,4 @@
 $(document).ready(function () {
-
     /*
     TODO:   The code below attaches a `keyup` event to `#number` text field.
             The code checks if the current number entered by the user in the
@@ -17,6 +16,20 @@ $(document).ready(function () {
     */
     $('#number').keyup(function () {
         // your code here
+        var numReq = $('#number').val();
+
+
+        $.get('/getCheckNumber', {number: numReq},async function(result){
+            if(result.number == numReq) {
+                $('#number').css('background-color', 'red');
+                $('#error').text('Number already registered');
+                $('#submit').prop('disabled', true);
+            } else {
+                $('#number').css('background-color', '#E3E3E3');
+                $('#error').text('');
+                $('#submit').prop('disabled', false);
+            }
+        });
     });
 
     /*
@@ -32,6 +45,14 @@ $(document).ready(function () {
     */
     $('#submit').click(function () {
         // your code here
+        var nameReq = $('#name').val();
+        var numReq = $('#number').val();
+
+        $.get('/add', {name: nameReq, number: numReq},async function(result){
+            $('#name').text('');
+            $('#number').text('');
+        });
+        $('#contacts').load('/ #contacts');
     });
 
     /*
@@ -41,8 +62,14 @@ $(document).ready(function () {
             specific `.remove` button, then removes the its parent `<div>` of
             class `.contact`.
     */
-    $('#contacts').on('click', '.remove', function () {
+    $('#contacts').on('click', '.remove',async function (event) {
         // your code here
+        var target = $(event.target);
+        var numDel = target.parent().find('.info').find('p:nth-child(2)').text();
+        $.get('/delete', {number: numDel}, function(result){
+            window.location.href = '/';
+
+        });
     });
 
 })

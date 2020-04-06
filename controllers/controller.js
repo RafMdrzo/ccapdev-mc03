@@ -3,7 +3,7 @@ const User = require('../models/UserModel.js');
 
 const controller = {
 
-    getFavicon: function (req, res) {
+    getFavicon: async function (req, res) {
         res.status(204);
     },
 
@@ -12,9 +12,11 @@ const controller = {
             request to path `/`. This displays `home.hbs` with all contacts
             current stored in the database.
     */
-    getIndex: function(req, res) {
+    getIndex: async function(req, res) {
         // your code here
-        res.render('home'); // This is to load the page initially
+        db.findMany(User, {}, 'name number', (result)=>{
+            res.render('home', {cards: result});
+        })
     },
 
     /*
@@ -24,8 +26,13 @@ const controller = {
             stored in the database, it returns an object containing the
             number, otherwise, it returns an empty string.
     */
-    getCheckNumber: function(req, res) {
+    getCheckNumber: async function(req, res) {
         // your code here
+        var reqNum = req.query.number;
+        db.findOne(User, {number: reqNum}, 'number', (result)=>{
+            res.send(result);
+        });
+
     },
 
     /*
@@ -34,8 +41,25 @@ const controller = {
             by the client to the database, then appends the new contact to the
             list of contacts in `home.hbs`.
     */
-    getAdd: function(req, res) {
+    getAdd: async function(req, res) {
         // your code here
+        var nameReq = req.query.name;
+        var numReq = req.query.number;
+        var resulter = [];
+
+        db.insertOne(User, {name: nameReq, number: numReq}, ()=>{
+            db.findMany(User, {}, 'name number', (result)=>{
+                for(i = 0; i < result.length; i++){
+                    var userMirror = {
+                        name: result[i].name,
+                        number: result[i].number
+                    }
+                    resulter.push(userMirror);
+                }
+                res.render('home', {cards: resulter});
+
+            });
+        });
     },
 
     /*
@@ -44,8 +68,14 @@ const controller = {
             from the database, then removes the contact to the list of
             contacts in `home.hbs`.
     */
-    getDelete: function (req, res) {
+    getDelete: async function (req, res) {
         // your code here
+        var delReq = req.query.number;
+        console.log(delReq);
+
+        db.deleteOne(User, {number: delReq}, (result)=>{
+            res.send(result);
+        });
     }
 
 }
